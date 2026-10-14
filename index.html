@@ -70,7 +70,7 @@ const initials=n=>String(n||'?').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'')
 const safeError=e=>({ 'auth/email-already-in-use':'Ese correo ya tiene una cuenta. Inicia sesión.', 'auth/invalid-email':'El correo no parece válido.', 'auth/weak-password':'La contraseña debe tener al menos 6 caracteres.', 'auth/invalid-credential':'Correo o contraseña incorrectos.', 'auth/network-request-failed':'No hay conexión a Internet. Comprueba la conexión.' }[e.code]||e.message||'Ha ocurrido un error.');
 function showError(s){$('authError').textContent=s||''}
 function setBusy(v){busy=v;['registerBtn','loginBtn','resetBtn'].forEach(id=>$(id).disabled=v)}
-function roomId(uid1,uid2){return [uid1,uid2].sort().join('_')}
+function roomId(uid1,uid2){return [uid1,uid2].sort().join('/')}
 function renderPeople(){
  const q=$('search').value.trim().toLowerCase();
  const list=Object.entries(users).filter(([uid,u])=>uid!==me?.uid&&u?.name&&u.name.toLowerCase().includes(q));
