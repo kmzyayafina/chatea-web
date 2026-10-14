@@ -1,4 +1,4 @@
-<!doctype html>
+html = r'''<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -6,106 +6,156 @@
 <title>Chatea — mensajería instantánea</title>
 <style>
 :root{--green:#075e54;--light:#e9edef;--accent:#00a884;--ink:#111b21;--muted:#667781}
-*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#dfe5e7;color:var(--ink);height:100vh}
-button,input{font:inherit}button{cursor:pointer}
-.app{height:100vh;max-width:1250px;margin:auto;background:#fff;display:grid;grid-template-columns:320px 1fr;box-shadow:0 4px 25px #0002}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#dfe5e7;color:var(--ink);min-height:100vh}
+button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}
+.app{min-height:100vh;height:100vh;max-width:1250px;margin:auto;background:#fff;display:grid;grid-template-columns:320px 1fr;box-shadow:0 4px 25px #0002}
 .sidebar{border-right:1px solid #d7dfe2;display:flex;flex-direction:column;min-width:0}.top{height:64px;background:#f0f2f5;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-weight:bold}
 .brand{display:flex;align-items:center;gap:10px}.logo{width:38px;height:38px;border-radius:50%;background:var(--accent);color:white;display:grid;place-items:center;font-size:21px}
-.me{padding:14px 16px;background:#fff;border-bottom:1px solid #e5e8ea}.me small{color:var(--muted)}.search{padding:10px;background:#fff}.search input{width:100%;padding:11px 13px;border:0;border-radius:9px;background:#f0f2f5;outline:none}
-.people{overflow:auto;flex:1}.person{display:flex;align-items:center;gap:12px;padding:13px 15px;border:0;border-bottom:1px solid #f0f2f5;background:white;width:100%;text-align:left}.person:hover,.person.active{background:#e9edef}.avatar{width:45px;height:45px;border-radius:50%;background:#d9fdd3;display:grid;place-items:center;font-weight:bold;color:#075e54;flex-shrink:0}.pinfo{min-width:0;flex:1}.pname{font-weight:600}.preview{font-size:13px;color:var(--muted);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.status{font-size:11px;color:var(--accent);margin-top:4px}
+.me{padding:14px 16px;background:#fff;border-bottom:1px solid #e5e8ea}.me small{color:var(--muted);overflow-wrap:anywhere}.search{padding:10px;background:#fff}.search input{width:100%;padding:11px 13px;border:0;border-radius:9px;background:#f0f2f5;outline:none}
+.people{overflow:auto;flex:1}.person{display:flex;align-items:center;gap:12px;padding:13px 15px;border:0;border-bottom:1px solid #f0f2f5;background:white;width:100%;text-align:left}.person:hover,.person.active{background:#e9edef}.avatar{width:45px;height:45px;border-radius:50%;background:#d9fdd3;display:grid;place-items:center;font-weight:bold;color:#075e54;flex-shrink:0}.pinfo{min-width:0;flex:1}.pname{font-weight:600}.preview{font-size:13px;color:var(--muted);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chat{display:flex;flex-direction:column;min-width:0;background:#efeae2;background-image:radial-gradient(#d9d2c7 0.6px,transparent .6px);background-size:16px 16px}
 .chathead{height:64px;background:#f0f2f5;display:flex;align-items:center;gap:12px;padding:0 18px;border-bottom:1px solid #d7dfe2}.chathead .sub{font-size:12px;color:var(--muted);margin-top:4px}.chatbody{flex:1;overflow:auto;padding:24px clamp(12px,5vw,70px);display:flex;flex-direction:column;gap:8px}
-.bubble{max-width:min(75%,520px);padding:9px 11px 7px;border-radius:8px;background:white;box-shadow:0 1px 1px #0001;overflow-wrap:anywhere;align-self:flex-start}.bubble.mine{align-self:flex-end;background:#d9fdd3}.sender{font-size:12px;color:#0a8275;font-weight:bold;margin-bottom:4px}.stamp{font-size:10px;color:var(--muted);text-align:right;margin-top:5px}
+.bubble{max-width:min(75%,520px);padding:9px 11px 7px;border-radius:8px;background:white;box-shadow:0 1px 1px #0001;overflow-wrap:anywhere;align-self:flex-start;white-space:pre-wrap}.bubble.mine{align-self:flex-end;background:#d9fdd3}.sender{font-size:12px;color:#0a8275;font-weight:bold;margin-bottom:4px}.stamp{font-size:10px;color:var(--muted);text-align:right;margin-top:5px}
 .composer{display:flex;gap:10px;padding:12px 16px;background:#f0f2f5;align-items:center}.composer input{flex:1;min-width:0;padding:13px 16px;border:0;border-radius:24px;outline:none}.send{border:0;background:var(--accent);color:white;width:46px;height:46px;border-radius:50%;font-size:19px}
 .welcome{margin:auto;text-align:center;padding:28px;max-width:500px;color:#41525d}.welcome h1{font-size:28px;font-weight:400}.welcome p{line-height:1.6}.notice{font-size:12px;color:var(--muted);padding:12px 16px;background:#fff8d6;border-top:1px solid #eee1a7;line-height:1.45}
-.setup{padding:12px 16px;border-top:1px solid #e5e8ea;font-size:12px;color:var(--muted);line-height:1.45}.setup button{border:0;background:none;color:#008f75;text-decoration:underline;padding:0;font-size:12px}
-.overlay{position:fixed;inset:0;background:#0007;display:grid;place-items:center;padding:18px;z-index:10}.modal{background:white;padding:24px;border-radius:16px;width:min(440px,100%);box-shadow:0 12px 50px #0003}.modal h2{margin-top:0}.modal label{display:block;font-size:13px;margin:14px 0 6px}.modal input{width:100%;padding:11px;border:1px solid #ccd4d8;border-radius:8px}.modal button.primary{background:var(--green);color:white;border:0;border-radius:8px;padding:12px 16px;margin-top:16px;width:100%}.muted{color:var(--muted);font-size:12px;line-height:1.5}.hidden{display:none!important}
-@media(max-width:650px){.app{grid-template-columns:100%;height:100dvh}.sidebar{grid-column:1;grid-row:1}.chat{display:none}.app.chat-open{grid-template-columns:100%}.app.chat-open .sidebar{display:none}.app.chat-open .chat{display:flex}.top{height:58px}.me{padding:9px 14px}.setup{padding:8px 14px}.chatbody{padding:16px 12px}.bubble{max-width:88%}}
+.overlay{position:fixed;inset:0;background:#0007;display:grid;place-items:center;padding:18px;z-index:10}.modal{background:white;padding:24px;border-radius:16px;width:min(440px,100%);max-height:95vh;overflow:auto;box-shadow:0 12px 50px #0003}.modal h2{margin-top:0}.modal label{display:block;font-size:13px;margin:14px 0 6px}.modal input{width:100%;padding:11px;border:1px solid #ccd4d8;border-radius:8px}.modal button.primary{background:var(--green);color:white;border:0;border-radius:8px;padding:12px 16px;margin-top:16px;width:100%}.modal button.secondary{background:white;color:var(--green);border:1px solid #ccd4d8;border-radius:8px;padding:11px;width:100%;margin-top:8px}.muted{color:var(--muted);font-size:12px;line-height:1.5}.hidden{display:none!important}.error{color:#b42318;font-size:13px;line-height:1.4;margin-top:10px;white-space:pre-wrap}
+@media(max-width:650px){.app{grid-template-columns:100%;height:100dvh}.sidebar{grid-column:1;grid-row:1}.chat{display:none}.app.chat-open{grid-template-columns:100%}.app.chat-open .sidebar{display:none}.app.chat-open .chat{display:flex}.top{height:58px}.me{padding:9px 14px}.chatbody{padding:16px 12px}.bubble{max-width:88%}}
 </style>
 </head>
 <body>
 <div class="app" id="app">
  <aside class="sidebar">
-  <div class="top"><div class="brand"><div class="logo">✉</div><span>Chatea</span></div><button id="profileBtn" title="Cambiar perfil" style="border:0;background:none;font-size:20px">⚙</button></div>
-  <div class="me"><div id="myName">Tu perfil</div><small id="connection">Modo de demostración · sin servidor</small></div>
-  <div class="search"><input id="search" placeholder="Buscar o empezar un chat…" aria-label="Buscar contactos"></div>
+  <div class="top"><div class="brand"><div class="logo">✉</div><span>Chatea</span></div><button id="profileBtn" title="Cuenta" style="border:0;background:none;font-size:20px">⚙</button></div>
+  <div class="me"><div id="myName">Tu perfil</div><small id="connection">Conectando con Firebase…</small></div>
+  <div class="search"><input id="search" placeholder="Buscar personas…" aria-label="Buscar contactos"></div>
   <div class="people" id="people"></div>
-  <div class="notice" id="notice">Esta página está en modo de demostración. Para chatear entre ordenadores, conecta una base de datos en tiempo real (instrucciones en el archivo).</div>
-  <div class="setup"><button id="setupBtn">Configurar chat entre ordenadores</button></div>
+  <div class="notice" id="notice">Inicia sesión para usar Chatea. Usa solo cuentas tuyas o de personas a las que invites.</div>
  </aside>
  <main class="chat" id="chat">
   <header class="chathead"><button id="back" class="hidden" style="border:0;background:none;font-size:22px">‹</button><div class="avatar" id="headAvatar">?</div><div><div id="headName">Elige un perfil</div><div class="sub" id="headStatus">Tus conversaciones aparecerán aquí</div></div></header>
-  <section class="chatbody" id="messages"><div class="welcome"><h1>Mensajería sencilla</h1><p>Elige un perfil de la lista para abrir el chat. Escribe tu nombre al entrar y empieza a conversar.</p><p class="muted">En modo de demostración, los mensajes solo existen en este navegador.</p></div></section>
-  <form class="composer" id="sendForm"><input id="messageInput" placeholder="Escribe un mensaje…" autocomplete="off" disabled><button class="send" type="submit" aria-label="Enviar" disabled id="sendBtn">➤</button></form>
+  <section class="chatbody" id="messages"><div class="welcome"><h1>Mensajería sencilla</h1><p>Inicia sesión, comparte tu nombre de usuario con otra persona y selecciónala para chatear.</p></div></section>
+  <form class="composer" id="sendForm"><input id="messageInput" placeholder="Escribe un mensaje…" autocomplete="off" maxlength="4000" disabled><button class="send" type="submit" aria-label="Enviar" disabled id="sendBtn">➤</button></form>
  </main>
 </div>
-<div class="overlay" id="nameOverlay"><form class="modal" id="nameForm"><h2>¡Bienvenido/a a Chatea! 👋</h2><p>¿Cómo te llamas? Ese será el nombre que verán los demás.</p><label for="nameInput">Tu nombre</label><input id="nameInput" maxlength="32" placeholder="Por ejemplo, Alex" required><button class="primary">Entrar al chat</button><p class="muted">No uses datos personales sensibles. El nombre se guarda solo en este navegador.</p></form></div>
-<div class="overlay hidden" id="setupOverlay"><form class="modal" id="setupForm"><h2>Conectar ordenadores</h2><p class="muted">Para que varias personas se vean y reciban mensajes en directo, hace falta un servicio compartido. Esta página admite Firebase Realtime Database.</p><label for="apiKey">apiKey</label><input id="apiKey" placeholder="AIza…"><label for="authDomain">authDomain</label><input id="authDomain" placeholder="tu-proyecto.firebaseapp.com"><label for="databaseURL">databaseURL</label><input id="databaseURL" placeholder="https://tu-proyecto-default-rtdb…"><label for="projectId">projectId</label><input id="projectId" placeholder="tu-proyecto"><button class="primary">Conectar</button><p class="muted">Necesitas crear un proyecto en Firebase, activar Realtime Database y pegar estos datos. Consulta LEEME en el archivo. No compartas claves privadas.</p><button type="button" id="cancelSetup" style="width:100%;margin-top:10px;background:white;border:1px solid #ccd4d8;padding:10px;border-radius:8px">Cancelar</button></form></div>
+<div class="overlay" id="authOverlay"><form class="modal" id="authForm">
+ <h2>¡Bienvenido/a a Chatea! 👋</h2><p>Regístrate con tu correo y contraseña, o inicia sesión si ya tienes una cuenta.</p>
+ <label for="displayName">Nombre que verán los demás</label><input id="displayName" maxlength="32" placeholder="Por ejemplo, Alex" autocomplete="nickname">
+ <label for="email">Correo electrónico</label><input id="email" type="email" placeholder="tu@correo.com" autocomplete="email" required>
+ <label for="password">Contraseña</label><input id="password" type="password" minlength="6" placeholder="Al menos 6 caracteres" autocomplete="current-password" required>
+ <button class="primary" type="submit" id="registerBtn">Crear cuenta</button>
+ <button class="secondary" type="button" id="loginBtn">Ya tengo cuenta · Iniciar sesión</button>
+ <button class="secondary" type="button" id="resetBtn">He olvidado mi contraseña</button>
+ <p class="muted">Tu correo no se muestra a otros usuarios. No uses contraseñas que utilices en otras páginas.</p><div class="error" id="authError"></div>
+</form></div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, push, set, onValue, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, set, onValue, push, query, limitToLast, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBpNFFGQC9XuAxcgHFBmH0q6iNBXnOWMr8",
+  authDomain: "chatea-80a99.firebaseapp.com",
+  databaseURL: "https://chatea-80a99-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "chatea-80a99",
+  storageBucket: "chatea-80a99.firebasestorage.app",
+  messagingSenderId: "365488220438",
+  appId: "1:365488220438:web:576b76a8837f22b2d38837",
+  measurementId: "G-EWDDZ62SFD"
+};
 const $=id=>document.getElementById(id);
-let myName=localStorage.getItem('chatea_name')||'', selected='', db=null, stopMessages=null, stopUsers=null, users={}, chats={}, demoUsers=['Pedro','Paco','Alex','Sam','Lucía'];
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const initials=n=>n.trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
-function showName(){ $('myName').textContent=myName||'Tu perfil'; }
+const appFirebase=initializeApp(firebaseConfig), auth=getAuth(appFirebase), db=getDatabase(appFirebase);
+let me=null, users={}, selected=null, stopUsers=null, stopMessages=null, activeRoom=null, busy=false;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const initials=n=>String(n||'?').trim().split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toUpperCase();
+const safeError=e=>({ 'auth/email-already-in-use':'Ese correo ya tiene una cuenta. Inicia sesión.', 'auth/invalid-email':'El correo no parece válido.', 'auth/weak-password':'La contraseña debe tener al menos 6 caracteres.', 'auth/invalid-credential':'Correo o contraseña incorrectos.', 'auth/network-request-failed':'No hay conexión a Internet. Comprueba la conexión.' }[e.code]||e.message||'Ha ocurrido un error.');
+function showError(s){$('authError').textContent=s||''}
+function setBusy(v){busy=v;['registerBtn','loginBtn','resetBtn'].forEach(id=>$(id).disabled=v)}
+function roomId(uid1,uid2){return [uid1,uid2].sort().join('_')}
 function renderPeople(){
- const q=$('search').value.toLowerCase();
- const list=db?Object.values(users):demoUsers.filter(n=>n!==myName).map((name,i)=>({id:'demo'+i,name,online:false}));
- $('people').innerHTML=list.filter(u=>u.name&&u.name!==myName&&u.name.toLowerCase().includes(q)).map(u=>`<button class="person ${selected===u.id?'active':''}" data-id="${esc(u.id)}"><div class="avatar">${esc(initials(u.name))}</div><div class="pinfo"><div class="pname">${esc(u.name)}</div><div class="preview">${db?(u.online?'● Disponible':'Toca para chatear'):'Perfil de ejemplo'}</div></div></button>`).join('')||'<div style="padding:20px;color:#667781;font-size:13px">No hay perfiles que coincidan.</div>';
+ const q=$('search').value.trim().toLowerCase();
+ const list=Object.entries(users).filter(([uid,u])=>uid!==me?.uid&&u?.name&&u.name.toLowerCase().includes(q));
+ $('people').innerHTML=list.map(([uid,u])=>`<button class="person ${selected===uid?'active':''}" data-id="${esc(uid)}"><div class="avatar">${esc(initials(u.name))}</div><div class="pinfo"><div class="pname">${esc(u.name)}</div><div class="preview">Toca para chatear</div></div></button>`).join('')||'<div style="padding:20px;color:#667781;font-size:13px">Aún no hay otras personas registradas.</div>';
  document.querySelectorAll('.person').forEach(b=>b.onclick=()=>openChat(b.dataset.id));
 }
-function roomId(a,b){return [a,b].sort().join('__').replace(/[.#$\[\]]/g,'_');}
-function openChat(id){
- selected=id; const person=db?users[id]:{id,name:demoUsers[Number(id.slice(4))]||'Contacto'};
- if(!person)return;
- $('app').classList.add('chat-open');$('back').classList.remove('hidden');
- $('headName').textContent=person.name;$('headAvatar').textContent=initials(person.name);$('headStatus').textContent=db?(person.online?'En línea':'Disponible cuando se conecte'):'Perfil de demostración';
- $('messageInput').disabled=!db;$('sendBtn').disabled=!db;
- if(stopMessages){stopMessages();stopMessages=null}
- if(db){const path='messages/'+roomId(myName,person.name);stopMessages=onValue(query(ref(db,path),limitToLast(150)),snap=>renderMessages(Object.values(snap.val()||{})));}
- else renderMessages([{name:person.name,text:'¡Hola! Este es un mensaje de ejemplo. Para recibir mensajes de otros ordenadores, configura Firebase.',time:Date.now()}]);
- renderPeople();
-}
 function renderMessages(items){
- const box=$('messages');if(!items.length){box.innerHTML='<div class="welcome"><p>Aún no hay mensajes. ¡Di hola! 👋</p></div>';return}
- box.innerHTML=items.sort((a,b)=>(a.time||0)-(b.time||0)).map(m=>`<div class="bubble ${m.name===myName?'mine':''}">${m.name!==myName?`<div class="sender">${esc(m.name||'Usuario')}</div>`:''}${esc(m.text||'')}<div class="stamp">${new Date(m.time||Date.now()).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</div></div>`).join('');
+ const box=$('messages');
+ if(!items.length){box.innerHTML='<div class="welcome"><p>Aún no hay mensajes. ¡Di hola! 👋</p></div>';return}
+ box.innerHTML=items.sort((a,b)=>(a.time||0)-(b.time||0)).map(m=>`<div class="bubble ${m.uid===me?.uid?'mine':''}">${m.uid!==me?.uid?`<div class="sender">${esc(m.name||'Usuario')}</div>`:''}${esc(m.text||'')}<div class="stamp">${new Date(m.time||Date.now()).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</div></div>`).join('');
  box.scrollTop=box.scrollHeight;
 }
-$('nameForm').addEventListener('submit',e=>{e.preventDefault();myName=$('nameInput').value.trim();if(!myName)return;localStorage.setItem('chatea_name',myName);$('nameOverlay').classList.add('hidden');showName();renderPeople();if(db)registerUser();});
-$('profileBtn').onclick=()=>{$('nameInput').value=myName;$('nameOverlay').classList.remove('hidden')};
+async function openChat(uid){
+ const person=users[uid]; if(!person||!me)return;
+ selected=uid;activeRoom=roomId(me.uid,uid);
+ $('app').classList.add('chat-open');$('back').classList.remove('hidden');
+ $('headName').textContent=person.name;$('headAvatar').textContent=initials(person.name);$('headStatus').textContent='Chat entre usuarios registrados';
+ $('messageInput').disabled=false;$('sendBtn').disabled=false;
+ if(stopMessages){stopMessages();stopMessages=null}
+ $('messages').innerHTML='<div class="welcome"><p>Cargando conversación…</p></div>';
+ // Each room stores member UIDs so database rules can limit access to participants.
+ const roomRef=ref(db,'rooms/'+activeRoom+'/members');
+ try{
+  const existing=await get(roomRef);
+  if(!existing.exists()){
+   await set(ref(db,'rooms/'+activeRoom+'/members'),{[me.uid]:true,[uid]:true});
+  }
+  stopMessages=onValue(query(ref(db,'rooms/'+activeRoom+'/messages'),limitToLast(150)),snap=>renderMessages(Object.values(snap.val()||{})),err=>{$('messages').innerHTML='<div class="welcome"><p>No se pueden leer los mensajes. Comprueba las reglas de Firebase.</p></div>';console.error(err)});
+ }catch(err){
+  $('messages').innerHTML='<div class="welcome"><p>No se pudo abrir este chat. Revisa las reglas de seguridad de Firebase.</p></div>';
+  console.error(err);
+ }
+ renderPeople();
+}
+async function sendMessage(e){
+ e.preventDefault();const text=$('messageInput').value.trim();
+ if(!text||!me||!selected||!activeRoom)return;
+ const target=users[selected];if(!target)return;
+ $('sendBtn').disabled=true;
+ try{
+  const membersRef=ref(db,'rooms/'+activeRoom+'/members');
+  const members=await get(membersRef);
+  if(!members.exists())await set(membersRef,{[me.uid]:true,[selected]:true});
+  await push(ref(db,'rooms/'+activeRoom+'/messages'),{uid:me.uid,name:me.displayName||$('myName').textContent,text,time:Date.now()});
+  $('messageInput').value='';
+ }catch(err){alert('No se pudo enviar el mensaje. Comprueba las reglas de Firebase.');console.error(err)}
+ finally{$('sendBtn').disabled=false}
+}
+$('authForm').addEventListener('submit',async e=>{
+ e.preventDefault(); if(busy)return;setBusy(true);showError('');
+ const name=$('displayName').value.trim(),email=$('email').value.trim(),password=$('password').value;
+ try{
+  const cred=await createUserWithEmailAndPassword(auth,email,password);
+  if(name)await updateProfile(cred.user,{displayName:name});
+ }catch(err){showError(safeError(err))}
+ finally{setBusy(false)}
+});
+$('loginBtn').onclick=async()=>{if(busy)return;setBusy(true);showError('');try{await signInWithEmailAndPassword(auth,$('email').value.trim(),$('password').value)}catch(err){showError(safeError(err))}finally{setBusy(false)}};
+$('resetBtn').onclick=async()=>{showError('');const email=$('email').value.trim();if(!email){showError('Escribe primero tu correo electrónico.');return}try{await sendPasswordResetEmail(auth,email);showError('Si la cuenta existe, recibirás un correo para restablecer la contraseña.')}catch(err){showError(safeError(err))}};
+$('profileBtn').onclick=async()=>{if(confirm('¿Quieres cerrar sesión de Chatea?'))await signOut(auth)};
 $('search').oninput=renderPeople;
 $('back').onclick=()=>{$('app').classList.remove('chat-open')};
-$('setupBtn').onclick=()=>$('setupOverlay').classList.remove('hidden');
-$('cancelSetup').onclick=()=>$('setupOverlay').classList.add('hidden');
-$('setupForm').addEventListener('submit',async e=>{
- e.preventDefault();
- const cfg={apiKey:$('apiKey').value.trim(),authDomain:$('authDomain').value.trim(),databaseURL:$('databaseURL').value.trim(),projectId:$('projectId').value.trim()};
- if(Object.values(cfg).some(v=>!v)){alert('Completa los cuatro campos.');return}
+$('sendForm').addEventListener('submit',sendMessage);
+onAuthStateChanged(auth,async user=>{
+ me=user;
+ if(stopUsers){stopUsers();stopUsers=null}
+ if(stopMessages){stopMessages();stopMessages=null}
+ selected=null;activeRoom=null;users={};
+ if(!user){
+  $('authOverlay').classList.remove('hidden');$('myName').textContent='Sin sesión';$('connection').textContent='Desconectado';
+  $('people').innerHTML='';$('messageInput').disabled=true;$('sendBtn').disabled=true;
+  $('messages').innerHTML='<div class="welcome"><h1>Mensajería sencilla</h1><p>Inicia sesión para empezar a conversar.</p></div>';return;
+ }
+ $('authOverlay').classList.add('hidden');
+ $('myName').textContent=user.displayName||user.email||'Usuario';$('connection').textContent='Conectado · Firebase';
+ $('notice').textContent='Chatea está conectado. Comparte el acceso solo con personas de confianza.';
  try{
-  const app=initializeApp(cfg,'chatea-'+Date.now());db=getDatabase(app);
-  $('connection').textContent='Conectando…';
-  $('setupOverlay').classList.add('hidden');
-  $('notice').textContent='Conectado a Firebase. Los demás usuarios deben usar la misma configuración.';
-  $('connection').textContent='Chat compartido · Firebase';
-  registerUser();
-  stopUsers=onValue(ref(db,'users'),snap=>{users=snap.val()||{};renderPeople();});
- }catch(err){alert('No se pudo conectar: '+err.message)}
+  await set(ref(db,'users/'+user.uid),{name:user.displayName||$('displayName').value.trim()||user.email.split('@')[0],createdAt:Date.now()});
+  stopUsers=onValue(ref(db,'users'),snap=>{users=snap.val()||{};renderPeople()},err=>{console.error(err);$('connection').textContent='Error de permisos en Firebase'});
+ }catch(err){console.error(err);$('connection').textContent='Revisa las reglas de Firebase'}
 });
-function registerUser(){
- if(!db||!myName)return;
- const safe=myName.toLowerCase().replace(/[.#$\[\]\/]/g,'_').replace(/__/g,'_');
- set(ref(db,'users/'+safe),{name:myName,online:true,lastSeen:Date.now()});
- users[safe]={id:safe,name:myName,online:true};renderPeople();
- window.addEventListener('beforeunload',()=>set(ref(db,'users/'+safe),{name:myName,online:false,lastSeen:Date.now()}),{once:true});
-}
-$('sendForm').addEventListener('submit',async e=>{
- e.preventDefault();const text=$('messageInput').value.trim();if(!text||!db||!selected)return;
- const person=users[selected];if(!person)return;
- const path='messages/'+roomId(myName,person.name);
- await push(ref(db,path),{name:myName,text,time:Date.now()});$('messageInput').value='';
-});
-if(myName){$('nameOverlay').classList.add('hidden');showName();renderPeople()}else{$('nameInput').focus();renderPeople()}
 </script>
 </body>
 </html>
+'''
+path = Path("/mnt/data/index_chatea_firebase.html")
+path.write_text(html, encoding="utf-8")
+print(f"Archivo creado: {path} ({path.stat().st_size} bytes)")
