@@ -49,7 +49,7 @@ button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.5;curso
 </form></div>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, onValue, push, query, limitToLast, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, set, onValue, push, query, limitToLast, get, remove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -71,32 +71,292 @@ const safeError=e=>({ 'auth/email-already-in-use':'Ese correo ya tiene una cuent
 function showError(s){$('authError').textContent=s||''}
 function setBusy(v){busy=v;['registerBtn','loginBtn','resetBtn'].forEach(id=>$(id).disabled=v)}
 function roomId(uid1,uid2){return [uid1,uid2].sort().join('/')}
+
+const ADMIN_UID = 'ZGVIgyiEEpSYKFzTCXgkMupkZ252';
+
 function renderPeople(){
  const q=$('search').value.trim().toLowerCase();
- const list=Object.entries(users).filter(([uid,u])=>uid!==me?.uid&&u?.name&&u.name.toLowerCase().includes(q));
- $('people').innerHTML=list.map(([uid,u])=>`<button class="person ${selected===uid?'active':''}" data-id="${esc(uid)}"><div class="avatar">${esc(initials(u.name))}</div><div class="pinfo"><div class="pname">${esc(u.name)}</div><div class="preview">Toca para chatear</div></div></button>`).join('')||'<div style="padding:20px;color:#667781;font-size:13px">Aún no hay otras personas registradas.</div>';
- document.querySelectorAll('.person').forEach(b=>b.onclick=()=>openChat(b.dataset.id));
+ const isAdmin=me?.uid===ADMIN_UID;
+
+ const list=Object.entries(users).filter(
+  ([uid,u])=>uid!==me?.uid&&u?.name&&u.name.toLowerCase().includes(q)
+ );
+
+ $('people').innerHTML=list.map(([uid,u])=>`
+  <div style="display:flex;align-items:center;border-bottom:1px solid #f0f2f5">
+   <button class="person ${selected===uid?'active':''}"
+    data-id="${esc(uid)}" style="flex:1;min-width:0">
+    <div class="avatar">${esc(initials(u.name))}</div>
+    <div class="pinfo">
+     <div class="pname">${esc(u.name)}</div>
+     <div class="preview">Toca para chatear</div>
+    </div>
+   </button>
+   ${isAdmin?`<button class="delete-profile" data-delete="${esc(uid)}"
+    title="Eliminar perfil" aria-label="Eliminar perfil de ${esc(u.name)}"
+    style="border:0;background:white;color:#b42318;padding:12px;font-size:18px">🗑️</button>`:''}
+  </div>
+ `).join('')||'<div style="padding:20px;color:#667781;font-size:13px">Aún no hay otras personas registradas.</div>';
+
+ document.querySelectorAll('.person').forEach(b=>{
+  b.onclick=()=>openChat(b.dataset.id);
+ });
+
+ document.querySelectorAll('.delete-profile').forEach(b=>{
+  b.onclick=async()=>{
+   const uid=b.dataset.delete;
+   const person=users[uid];
+   if(!isAdmin||!person||uid===me?.uid)return;
+
+   if(!confirm('¿Eliminar el perfil de '+person.name+' de Chatea?'))return;
+
+   try{
+    await set(ref(db,'deletedProfiles/'+uid),true);
+    await remove(ref(db,'users/'+uid));
+    alert('Perfil eliminado de la lista.');
+   }catch(err){
+    console.error(err);
+    alert('No se pudo eliminar el perfil. Comprueba las reglas de Firebase.');
+   }
+  };
+ });
+}
+
+
+let notificationAudio = null;
+
+let notificationListeners = {};
+let notifiedMessages = new Set();
+
+function stopNotificationListeners() {
+  Object.values(notificationListeners).forEach(stop => stop());
+  notificationListeners = {};
+}
+
+function startNotificationListeners() {
+  stopNotificationListeners();
+
+  if (!me) return;
+
+  const myUid = me.uid;
+
+  Object.keys(users).forEach(uid => {
+    if (uid === myUid) return;
+
+    const room = roomId(myUid, uid);
+
+    notificationListeners[uid] = onValue(
+      query(
+        ref(db, 'rooms/' + room + '/messages'),
+        limitToLast(1)
+      ),
+      snap => {
+        if (!snap.exists()) return;
+
+        snap.forEach(child => {
+          const message = child.val();
+          const messageId = child.key;
+          const uniqueId = room + '/' + messageId;
+
+          // Registrar el mensaje inicial sin emitir sonido.
+          if (!notifiedMessages.has(uniqueId)) {
+            notifiedMessages.add(uniqueId);
+
+            // Solo avisar si el mensaje es reciente
+            // y lo ha enviado otra persona.
+            const isRecent =
+              Date.now() - (message.time || 0) < 15000;
+
+            if (
+              isRecent &&
+              message.uid !== myUid &&
+              room !== activeRoom
+            ) {
+              playNotificationSound();
+            }
+          }
+        });
+      },
+      error => {
+        console.warn(
+          'No se pudo revisar el chat de ' + uid,
+          error
+        );
+      }
+    );
+  });
+}
+
+document.addEventListener('click', () => {
+  if (!notificationAudio) {
+    const AudioContextClass =
+      window.AudioContext || window.webkitAudioContext;
+
+    if (AudioContextClass) {
+      notificationAudio = new AudioContextClass();
+    }
+  }
+
+  if (notificationAudio?.state === 'suspended') {
+    notificationAudio.resume();
+  }
+});
+
+function playNotificationSound() {
+  try {
+    const AudioContextClass =
+      window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContextClass) return;
+
+    if (!notificationAudio) {
+      notificationAudio = new AudioContextClass();
+    }
+
+    if (notificationAudio.state === 'suspended') {
+      notificationAudio.resume();
+    }
+
+    const ctx = notificationAudio;
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+    oscillator.frequency.setValueAtTime(1175, ctx.currentTime + 0.12);
+
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.18, ctx.currentTime + 0.025);
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime + 0.28);
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.3);
+  } catch (error) {
+    console.warn('No se pudo reproducir el sonido:', error);
+  }
 }
 function renderMessages(items){
  const box=$('messages');
- if(!items.length){box.innerHTML='<div class="welcome"><p>Aún no hay mensajes. ¡Di hola! 👋</p></div>';return}
- box.innerHTML=items.sort((a,b)=>(a.time||0)-(b.time||0)).map(m=>`<div class="bubble ${m.uid===me?.uid?'mine':''}">${m.uid!==me?.uid?`<div class="sender">${esc(m.name||'Usuario')}</div>`:''}${esc(m.text||'')}<div class="stamp">${new Date(m.time||Date.now()).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}</div></div>`).join('');
+ const roomAtRender=activeRoom;
+
+ if(!items.length){
+  box.innerHTML='<div class="welcome"><p>Aún no hay mensajes. ¡Di hola! 👋</p></div>';
+  return;
+ }
+
+ box.innerHTML=items
+  .sort((a,b)=>(a.time||0)-(b.time||0))
+  .map(m=>`
+   <div class="bubble ${m.uid===me?.uid?'mine':''}">
+    ${m.uid!==me?.uid
+      ? `<div class="sender">${esc(m.name||'Usuario')}</div>`
+      : ''}
+    ${esc(m.text||'')}
+    <div class="stamp">
+     ${new Date(m.time||Date.now()).toLocaleTimeString('es-ES',{
+       hour:'2-digit',minute:'2-digit'
+     })}
+    </div>
+    ${m.uid===me?.uid
+      ? `<button type="button" class="delete-message"
+          data-message-id="${esc(m.id)}"
+          style="border:0;background:transparent;color:#b42318;padding:4px"
+          title="Eliminar mi mensaje"
+          aria-label="Eliminar mi mensaje">🗑️</button>`
+      : ''}
+   </div>
+  `).join('');
+
+ box.querySelectorAll('.delete-message').forEach(b=>{
+  b.onclick=async()=>{
+   const id=b.dataset.messageId;
+
+   if(!id||!roomAtRender||!me)return;
+   if(!confirm('¿Quieres eliminar tu mensaje?'))return;
+
+   b.disabled=true;
+   try{
+    await remove(ref(db,'rooms/'+roomAtRender+'/messages/'+id));
+   }catch(err){
+    console.error(err);
+    alert('No se pudo eliminar. Comprueba las reglas de Firebase.');
+    b.disabled=false;
+   }
+  };
+ });
+
  box.scrollTop=box.scrollHeight;
 }
+
 async function openChat(uid){
- const person=users[uid]; if(!person||!me)return;
- selected=uid;activeRoom=roomId(me.uid,uid);
- $('app').classList.add('chat-open');$('back').classList.remove('hidden');
- $('headName').textContent=person.name;$('headAvatar').textContent=initials(person.name);$('headStatus').textContent='Chat entre usuarios registrados';
- $('messageInput').disabled=false;$('sendBtn').disabled=false;
- if(stopMessages){stopMessages();stopMessages=null}
- $('messages').innerHTML='<div class="welcome"><p>Cargando conversación…</p></div>';
+ const person=users[uid];
+ if(!person||!me)return;
+
+ selected=uid;
+ activeRoom=roomId(me.uid,uid);
+
+ $('app').classList.add('chat-open');
+ $('back').classList.remove('hidden');
+ $('headName').textContent=person.name;
+ $('headAvatar').textContent=initials(person.name);
+ $('headStatus').textContent='Chat entre usuarios registrados';
+ $('messageInput').disabled=false;
+ $('sendBtn').disabled=false;
+
+ if(stopMessages){
+  stopMessages();
+  stopMessages=null;
+ }
+
+ $('messages').innerHTML=
+  '<div class="welcome"><p>Cargando conversación…</p></div>';
+
  try{
-  stopMessages=onValue(query(ref(db,'rooms/'+activeRoom+'/messages'),limitToLast(150)),snap=>renderMessages(Object.values(snap.val()||{})),err=>{$('messages').innerHTML='<div class="welcome"><p>No se pueden leer los mensajes. Comprueba las reglas de Firebase.</p></div>';console.error(err)});
+  let firstSnapshot=true;
+  let previousMessageIds=new Set();
+
+  stopMessages=onValue(
+   query(
+    ref(db,'rooms/'+activeRoom+'/messages'),
+    limitToLast(150)
+   ),
+   snap=>{
+    const data=snap.val()||{};
+    const items=Object.entries(data).map(
+     ([id,m])=>({...m,id})
+    );
+
+    const currentIds=new Set(items.map(m=>m.id));
+
+    if(!firstSnapshot){
+     const hasNewIncomingMessage=items.some(
+      m=>!previousMessageIds.has(m.id)&&m.uid!==me?.uid
+     );
+
+     if(hasNewIncomingMessage){
+      playNotificationSound();
+     }
+    }
+
+    previousMessageIds=currentIds;
+    firstSnapshot=false;
+    renderMessages(items);
+   },
+   err=>{
+    $('messages').innerHTML=
+     '<div class="welcome"><p>No se pueden leer los mensajes. Comprueba las reglas de Firebase.</p></div>';
+    console.error(err);
+   }
+  );
  }catch(err){
-  $('messages').innerHTML='<div class="welcome"><p>No se pudo abrir este chat. Revisa las reglas de seguridad de Firebase.</p></div>';
+  $('messages').innerHTML=
+   '<div class="welcome"><p>No se pudo abrir este chat. Revisa las reglas de seguridad de Firebase.</p></div>';
   console.error(err);
  }
+
  renderPeople();
 }
 
@@ -142,8 +402,17 @@ $('sendForm').addEventListener('submit',sendMessage);
 onAuthStateChanged(auth,async user=>{
  me=user;
  if(stopUsers){stopUsers();stopUsers=null}
- if(stopMessages){stopMessages();stopMessages=null}
- selected=null;activeRoom=null;users={};
+ if (stopMessages) {
+  stopMessages();
+  stopMessages = null;
+}
+
+stopNotificationListeners();
+notifiedMessages.clear();
+
+selected = null;
+activeRoom = null;
+users = {};
  if(!user){
   $('authOverlay').classList.remove('hidden');$('myName').textContent='Sin sesión';$('connection').textContent='Desconectado';
   $('people').innerHTML='';$('messageInput').disabled=true;$('sendBtn').disabled=true;
@@ -154,8 +423,27 @@ onAuthStateChanged(auth,async user=>{
  $('notice').textContent='Chatea está conectado. Comparte el acceso solo con personas de confianza.';
  try{
   await set(ref(db,'users/'+user.uid),{name:user.displayName||$('displayName').value.trim()||user.email.split('@')[0],createdAt:Date.now()});
-  stopUsers=onValue(ref(db,'users'),snap=>{users=snap.val()||{};renderPeople()},err=>{console.error(err);$('connection').textContent='Error de permisos en Firebase'});
- }catch(err){console.error(err);$('connection').textContent='Revisa las reglas de Firebase'}
+  
+
+stopUsers = onValue(
+  ref(db, 'users'),
+  snap => {
+    users = snap.val() || {};
+    renderPeople();
+    startNotificationListeners();
+  },
+  err => {
+    console.error(err);
+    $('connection').textContent =
+      'Error de permisos en Firebase';
+  }
+);
+
+} catch (err) {
+  console.error(err);
+  $('connection').textContent =
+    'Revisa las reglas de Firebase';
+}
 });
 </script>
 </body>
